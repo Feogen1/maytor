@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!--
+  ============================================================================
+  ВСЕ ДАННЫЕ САЙТА — В ЭТОМ БЛОКЕ.
+  Название компании, контакты, команда, цифры результатов, цены и сроки,
+  подтверждения (грант, акты, свидетельства), параметры примера.
+  Меняете здесь — обновляется везде на странице.
+  В тексте разметки ниже встречаются подстановки вида {offer.term}:
+  это ссылки на значения из этого блока.
+  Заголовки и пояснительные абзацы остаются в разметке.
+  ============================================================================
+-->
+<script>
+const SITE = {
+
+  /* ---------- Компания ---------- */
+  company: {
+    brand: 'Майтор',                      // название в шапке и на логотипе
+    legal: 'ООО «Майтор»',                // юридическое название (подвал)
+    title: 'Майтор — оптимизация ротора синхронного двигателя',   // заголовок вкладки
+    description: 'Инжиниринговый сервис: подбираем форму и положение постоянных магнитов ротора СДПМ. Больше момента, меньше дорогих магнитов, результат за 1–2 недели.'
+  },
+
+  /* ---------- Контакты (ЗАПОЛНИТЬ: email сейчас заглушка) ---------- */
+  contacts: {
+    email:    'fail1999@yandex.ru',             // сюда приходит заявка, если не задан form.endpoint
+    phone:    '',                             // пусто — блок «Телефон» скрыт (формат: '+7 (900) 000-00-00')
+    telegram: '',                             // пусто — блок «Telegram» скрыт (формат: '@username')
+    city:     'Казань, Республика Татарстан'
+  },
+
+  /* ---------- Форма заявки ---------- */
+  form: {
+    // Необязательно: адрес сервиса приёма форм (Formspree, Getform и т.п.).
+    // Если указан — заявка уходит запросом POST (JSON), без открытия почтовой программы.
+    endpoint: '',
+    replyTime: 'в течение рабочего дня'
+  },
+
+  /* ---------- Цена и сроки ---------- */
+  offer: {
+    price: '100–250 тыс. ₽',                  // ориентир за проект
+    term:  '1–2 недели',                      // срок проекта
+    calcPrice: 175000                         // стоимость проекта в калькуляторе по умолчанию, ₽
+  },
+
+  /* ---------- Вуз-партнёр ---------- */
+  org: {
+    university: 'КГЭУ',
+    universityFull: 'Казанского государственного энергетического университета'
+  },
+
+  /* ---------- Блок «Задача»: рыночные цифры ---------- */
+  problem: {
+    magnetShare: '25–40 %',                   // доля магнитов в себестоимости двигателя
+    licenseCost: '0,6–2,4 млн ₽'              // лицензия зарубежной САПР в год
+  },
+
+  /* ---------- Результаты оптимизации ---------- */
+  results: {
+    torque: '+11,2',                          // прирост момента, %
+    magnet: '−8,3',                           // изменение расхода магнита, % (калькулятор берёт отсюда же)
+    paretoTorque: '+13,6',                    // максимум момента на фронте Парето, %
+    speedup: '≈30',                           // во сколько раз меньше расчётов МКЭ
+    error: '2,1',                             // средняя ошибка нейросети, %
+    r2: '0,996'
+  },
+
+  /* ---------- Затраты вычислений ---------- */
+  compute: {
+    trainSamples: 500,                        // расчётов МКЭ в обучающей выборке
+    verifyCalcs: 45,                          // проверочных расчётов лучших вариантов
+    classicCalcs: 18000,                      // расчётов в классической схеме ГА + МКЭ
+    classicTime: '12 суток',                  // время классической оптимизации
+    nnTime: '5 мс',                           // оценка варианта нейросетью
+    femTime: '55 с',                          // один расчёт МКЭ
+    runTime: '40 минут'                       // один прогон оптимизации
+  },
+
+  /* ---------- Пример: двигатель и параметры ротора ---------- */
+  example: {
+    motor: 'BM1418 ZXF',
+    power: '350 Вт',
+    voltage: '48 В',
+    speed: '450 об/мин',
+    pairs: 10,                                // число V-образных пар магнитов
+    rotorDiameter: '77,5',                    // мм
+    shaftDiameter: '14',                      // мм
+    magnetTemp: '125',                        // °C, температура магнитов
+    tempLimit: '150',                         // °C, допуск
+    // w — ширина магнита, мм; t — толщина, мм; a — поворот V-пары, °; area — площадь магнита, мм²
+    base: { w: 8.02, t: 3.00, a: 0,    area: 24.06 },
+    opt:  { w: 8.19, t: 2.70, a: 5.72, area: 22.06 }
+  },
+
+  /* ---------- Калькулятор: значения по умолчанию ---------- */
+  calculator: {
+    qty: 5000,                                // годовой тираж, шт.
+    magnetCost: 1200                          // стоимость магнитов в одном двигателе, ₽
+  },
+
+  /* ---------- Подтверждения (карточки в блоке «Подтверждения») ---------- */
+  proof: {
+    cards: [
+      { tag: 'Грант',
+        title: 'Победитель «Студенческого стартапа» Фонда содействия инновациям',
+        text: 'Грант 1 млн ₽ на разработку программного комплекса. Лот «Технологии создания экологически чистого транспорта».' },
+      { tag: 'Внедрение',
+        title: 'Акт о внедрении: ООО «Аримира»',
+        text: 'Метод применён при оптимизации ротора синхронного генератора с постоянными магнитами: сократились сроки и трудоёмкость расчётов.' },
+      { tag: 'Интеллектуальная собственность',
+        title: 'Три свидетельства Роспатента',
+        text: 'Две программы для ЭВМ и база данных расчётов.',
+        lines: ['ЭВМ № 2026660110', 'ЭВМ № 2026685071', 'БД № 2026623164'] },
+      { tag: 'Публикации',
+        title: '3 статьи ВАК и 8 публикаций РИНЦ',
+        text: 'Результаты по нейросетевым суррогатам и оптимизации ротора СДПМ опубликованы в рецензируемых изданиях.' },
+      { tag: 'Научная база',
+        title: 'Работа на базе {org.university}',
+        text: 'Проект развивается на базе {org.universityFull}: используются его научные компетенции и материально-техническая база.' },
+      { tag: 'Опытный образец',
+        title: 'Ротор изготовлен по результатам расчёта',
+        text: 'Оптимизированная конструкция воплощена в опытном роторе двигателя {example.motor}.' }
+    ]
+  },
+
+  /* ---------- Команда ----------
+     Первый в списке — руководитель, он же указан в подвале.
+     Имя: «Фамилия Имя Отчество» (инициалы для аватара считаются сами).
+     photo: путь или ссылка на фото; пусто — показываются инициалы. */
+  team: [
+    { name: 'Шайдуллин Фаиль Рамисович',
+      role: 'Руководитель проекта',
+      photo: '',
+      bio: 'Аспирант КГЭУ, специальность 2.4.2 «Электротехнические комплексы и системы».' }
+  ]
+};
+</script>
+<title>{company.title}</title>
+<meta name="description" content="{company.description}">
+<meta name="theme-color" content="#f6f7f8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%231b4fd8'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%23fff'/%3E%3C/svg%3E">
+
+<style>
+:root {
+  --bg: #f6f7f8;
+  --surface: #ffffff;
+  --ink: #12161c;
+  --muted: #566170;
+  --line: #d3d8de;
+  --line-soft: #e5e8ec;
+  --accent: #1b4fd8;
+  --accent-ink: #ffffff;
+  --accent-soft: #e9effd;
+  --grid: rgba(18, 22, 28, .045);
+  --ghost: #8a94a3;
+  --ok: #0d7a4e;
+  --err: #b42318;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --wrap: 1120px;
+  --gut: 24px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1217; --surface: #151a21; --ink: #e8ecf1; --muted: #9aa5b3;
+    --line: #2b3440; --line-soft: #202833; --accent: #6b93ff; --accent-ink: #0b1220;
+    --accent-soft: #19243f; --grid: rgba(232, 236, 241, .045); --ghost: #6c7787;
+    --ok: #4cc38a; --err: #ff7b72;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1217; --surface: #151a21; --ink: #e8ecf1; --muted: #9aa5b3;
+  --line: #2b3440; --line-soft: #202833; --accent: #6b93ff; --accent-ink: #0b1220;
+  --accent-soft: #19243f; --grid: rgba(232, 236, 241, .045); --ghost: #6c7787;
+  --ok: #4cc38a; --err: #ff7b72;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--sans); font-size: 17px; line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; }
+h1, h2, h3, p { margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 var(--gut); }
+.mono { font-family: var(--mono); }
+.nb { white-space: nowrap; }
+
+/* ---------- Шапка ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.topbar .wrap { display: flex; align-items: center; gap: 28px; height: 60px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 650; letter-spacing: .01em; }
+.brand svg { width: 26px; height: 26px; }
+.nav { display: flex; gap: 22px; margin-left: auto; }
+.topbar .btn { white-space: nowrap; flex: none; }
+.nav a {
+  white-space: nowrap;
+  text-decoration: none; font-size: 14px; color: var(--muted);
+  padding: 6px 0; border-bottom: 1px solid transparent; transition: color .15s, border-color .15s;
+}
+.nav a:hover, .nav a.active { color: var(--ink); border-bottom-color: var(--accent); }
+.menu-btn {
+  display: none; margin-left: auto; background: none; border: 1px solid var(--line);
+  width: 40px; height: 40px; cursor: pointer; padding: 0; position: relative;
+}
+.menu-btn span, .menu-btn span::before, .menu-btn span::after {
+  content: ""; position: absolute; left: 11px; right: 11px; height: 1.5px; background: var(--ink);
+}
+.menu-btn span { top: 19px; }
+.menu-btn span::before { top: -6px; left: 0; right: 0; }
+.menu-btn span::after { top: 6px; left: 0; right: 0; }
+
+/* ---------- Кнопки ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 46px; padding: 0 22px; cursor: pointer; text-decoration: none;
+  font-size: 15px; font-weight: 600; letter-spacing: .01em;
+  border: 1px solid var(--ink); background: transparent; color: var(--ink);
+  border-radius: 2px; transition: background .15s, color .15s, border-color .15s;
+}
+.btn:hover { background: var(--ink); color: var(--bg); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { background: color-mix(in srgb, var(--accent) 86%, #000); border-color: color-mix(in srgb, var(--accent) 86%, #000); color: var(--accent-ink); }
+.btn.sm { height: 38px; padding: 0 16px; font-size: 14px; }
+
+/* ---------- Секции ---------- */
+section { border-top: 1px solid var(--line); }
+.sec { padding: 88px 0; }
+.sec-head { display: grid; grid-template-columns: 200px 1fr; gap: 0 24px; margin-bottom: 48px; align-items: start; }
+.sec-head .idx { font-family: var(--mono); font-size: 13px; color: var(--accent); letter-spacing: .08em; padding-top: 10px; }
+.sec-head h2 { font-size: clamp(26px, 3.4vw, 38px); line-height: 1.15; font-weight: 650; letter-spacing: -.01em; max-width: 24ch; }
+.sec-head p { grid-column: 2; margin-top: 14px; color: var(--muted); max-width: 64ch; }
+.eyebrow { font-family: var(--mono); font-size: 12.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+/* ---------- Hero ---------- */
+.hero {
+  border-top: 0; padding: 72px 0 0;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 40px 40px; background-position: -1px -1px;
+}
+.hero-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center; }
+.hero h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.07; font-weight: 700; letter-spacing: -.02em; margin: 18px 0 22px; }
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero .lead { font-size: 19px; color: var(--muted); max-width: 52ch; }
+.hero .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+.hero .tags { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 26px; font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+.hero .tags span::before { content: "▪"; color: var(--accent); margin-right: 8px; }
+
+.fig {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 2px;
+}
+.fig-bar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 14px; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--muted);
+}
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
+.seg button {
+  background: transparent; border: 0; border-right: 1px solid var(--line); cursor: pointer;
+  padding: 6px 12px; font-family: var(--mono); font-size: 12px; color: var(--muted);
+}
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.fig svg.rotor { width: 100%; height: auto; aspect-ratio: 1 / 1; }
+.fig-params {
+  display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line);
+}
+.fig-params div { padding: 10px 14px; border-right: 1px solid var(--line-soft); }
+.fig-params div:last-child { border-right: 0; }
+.fig-params dt { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.fig-params dd { margin: 2px 0 0; font-family: var(--mono); font-size: 14px; font-weight: 600; }
+.fig-note { padding: 10px 14px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+
+.stats { margin-top: 64px; display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); background: var(--surface); }
+.stat { padding: 24px 22px 22px; border-right: 1px solid var(--line); }
+.stat:last-child { border-right: 0; }
+.stat b { display: block; font-family: var(--mono); font-size: clamp(28px, 3.2vw, 40px); font-weight: 600; letter-spacing: -.03em; line-height: 1.1; }
+.stat b small { font-size: .5em; letter-spacing: 0; color: var(--muted); font-weight: 500; }
+.stat span { display: block; margin-top: 8px; font-size: 14px; color: var(--muted); line-height: 1.4; }
+.stat.hl b { color: var(--accent); }
+.stats-note { padding: 14px 0 40px; font-size: 13px; color: var(--muted); }
+
+/* ---------- Проблема ---------- */
+.cols3 { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); background: var(--surface); }
+.cell { padding: 28px 26px 30px; border-right: 1px solid var(--line); }
+.cell:last-child { border-right: 0; }
+.cell .num { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; color: var(--accent); }
+.cell h3 { font-size: 19px; line-height: 1.3; font-weight: 650; margin: 10px 0 10px; }
+.cell p { color: var(--muted); font-size: 15.5px; }
+.cell .big { font-family: var(--mono); font-size: 34px; font-weight: 600; letter-spacing: -.03em; margin: 14px 0 2px; line-height: 1.1; }
+
+/* ---------- Процесс ---------- */
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); background: var(--surface); }
+.step { padding: 26px 24px 28px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.steps.four { grid-template-columns: repeat(4, 1fr); }
+.step .n { font-family: var(--mono); font-size: 13px; color: var(--accent); letter-spacing: .06em; }
+.step h3 { font-size: 18px; line-height: 1.3; font-weight: 650; margin: 8px 0 8px; }
+.step p { color: var(--muted); font-size: 15px; }
+.step .io { margin-top: 12px; font-family: var(--mono); font-size: 12px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 10px; }
+
+.loop-title { margin: 56px 0 14px; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px; }
+.loop-title h3 { font-size: 18px; font-weight: 650; }
+.loop { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid var(--line); background: var(--surface); position: relative; }
+.node { padding: 20px 18px 18px; border-right: 1px solid var(--line); position: relative; }
+.node:last-child { border-right: 0; }
+.node:not(:last-child)::after {
+  content: ""; position: absolute; right: -6px; top: 50%; width: 11px; height: 11px; margin-top: -5.5px;
+  background: var(--surface); border-top: 1px solid var(--ink); border-right: 1px solid var(--ink);
+  transform: rotate(45deg); z-index: 1;
+}
+.node .k { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+.node b { display: block; margin: 6px 0 4px; font-size: 15.5px; line-height: 1.3; }
+.node span { font-size: 13.5px; color: var(--muted); line-height: 1.45; display: block; }
+.node .t { margin-top: 10px; font-family: var(--mono); font-size: 12px; color: var(--accent); }
+.loop-back { font-family: var(--mono); font-size: 12px; color: var(--muted); padding: 10px 18px; border: 1px solid var(--line); border-top: 0; background: var(--surface); }
+.loop-back::before { content: "↺"; color: var(--accent); margin-right: 8px; font-size: 14px; }
+
+/* ---------- Выгода ---------- */
+.benefit { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--line); background: var(--surface); }
+.benefit .cell h3 { margin-top: 12px; }
+.benefit ul { list-style: none; margin: 14px 0 0; padding: 0; font-size: 15px; color: var(--muted); }
+.benefit li { padding: 8px 0 8px 22px; border-top: 1px solid var(--line-soft); position: relative; }
+.benefit li::before { content: ""; position: absolute; left: 2px; top: 17px; width: 8px; height: 1px; background: var(--accent); }
+.benefit .metric { font-family: var(--mono); font-size: 44px; font-weight: 600; letter-spacing: -.04em; color: var(--accent); line-height: 1; }
+
+.calc { margin-top: 24px; display: grid; grid-template-columns: 1.15fr .85fr; border: 1px solid var(--line); background: var(--surface); }
+.calc-in { padding: 28px 28px 30px; border-right: 1px solid var(--line); }
+.calc-in h3 { font-size: 19px; font-weight: 650; }
+.calc-in > p { color: var(--muted); font-size: 15px; margin: 6px 0 20px; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+.field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.field .ctl { display: flex; align-items: stretch; border: 1px solid var(--line); background: var(--bg); border-radius: 2px; }
+.field .ctl:focus-within { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.field .ctl input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 10px 12px; font-family: var(--mono); font-size: 15px; outline: none; }
+.field .ctl i { font-style: normal; font-family: var(--mono); font-size: 12.5px; color: var(--muted); padding: 0 12px; display: flex; align-items: center; border-left: 1px solid var(--line); }
+.calc-out { padding: 28px; display: flex; flex-direction: column; justify-content: space-between; gap: 22px; background: var(--accent-soft); }
+.calc-out .lbl { font-family: var(--mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.calc-out .val { font-family: var(--mono); font-size: clamp(30px, 3.4vw, 42px); font-weight: 600; letter-spacing: -.03em; line-height: 1.1; margin-top: 6px; color: var(--accent); }
+.calc-out .val.sm { font-size: 24px; color: var(--ink); }
+.calc-out .hint { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+
+/* ---------- Пример ---------- */
+.example { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.panel { border: 1px solid var(--line); background: var(--surface); }
+.panel h3 { padding: 14px 20px; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 12.5px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+table.cmp { width: 100%; border-collapse: collapse; font-size: 15px; }
+table.cmp th, table.cmp td { text-align: left; padding: 12px 20px; border-bottom: 1px solid var(--line-soft); }
+table.cmp th { font-weight: 500; color: var(--muted); font-size: 13px; }
+table.cmp td.m, table.cmp th.m { font-family: var(--mono); text-align: right; white-space: nowrap; }
+table.cmp tr:last-child td { border-bottom: 0; }
+table.cmp tr.sum td { font-weight: 650; background: var(--accent-soft); }
+table.cmp tr.sum td.m { color: var(--accent); }
+.bars { padding: 20px; }
+.bar-row + .bar-row { margin-top: 20px; }
+.bar-row .cap { display: flex; justify-content: space-between; gap: 10px; font-size: 14.5px; margin-bottom: 8px; }
+.bar-row .cap span:last-child { font-family: var(--mono); font-weight: 600; }
+.bar { height: 14px; background: var(--line-soft); position: relative; }
+.bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ink); transform-origin: left; }
+.bar.acc i { background: var(--accent); }
+.bar-note { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--line); font-size: 13.5px; color: var(--muted); }
+.panel + .panel { margin-top: 24px; }
+
+/* ---------- Что получает заказчик ---------- */
+.deliv { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); background: var(--surface); }
+.deliv > div { padding: 22px 26px 24px 64px; border-bottom: 1px solid var(--line); position: relative; }
+.deliv > div:nth-child(odd) { border-right: 1px solid var(--line); }
+.deliv > div:nth-last-child(-n+2) { border-bottom: 0; }
+.deliv .ic { position: absolute; left: 24px; top: 26px; width: 24px; height: 24px; color: var(--accent); }
+.deliv h3 { font-size: 17px; font-weight: 650; margin-bottom: 4px; }
+.deliv p { font-size: 15px; color: var(--muted); }
+
+/* ---------- Подтверждения ---------- */
+.proof { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); background: var(--surface); }
+.proof > div { padding: 24px 24px 26px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.proof .tag { font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.proof h3 { font-size: 17px; line-height: 1.35; font-weight: 650; margin: 8px 0 6px; }
+.proof p { font-size: 14.5px; color: var(--muted); }
+.proof .nums { font-family: var(--mono); font-size: 13px; color: var(--ink); margin-top: 8px; line-height: 1.7; }
+
+.proof > div:last-child:nth-child(3n+2) { grid-column: span 2; }
+.team { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-top: 24px; }
+.person { display: grid; grid-template-columns: 76px 1fr; gap: 20px; padding: 22px; border: 1px solid var(--line); background: var(--surface); }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.avatar { overflow: hidden;
+  width: 76px; height: 76px; border: 1px solid var(--line); display: grid; place-items: center;
+  font-family: var(--mono); font-size: 22px; font-weight: 600; color: var(--accent); background: var(--accent-soft);
+}
+.person h3 { font-size: 18px; font-weight: 650; line-height: 1.3; }
+.person .role { text-transform: uppercase; font-family: var(--mono); font-size: 12px; color: var(--muted); margin: 3px 0 8px; letter-spacing: .03em; }
+.person p { font-size: 14.5px; color: var(--muted); }
+
+/* ---------- FAQ ---------- */
+.faq { border: 1px solid var(--line); background: var(--surface); }
+.faq details { border-bottom: 1px solid var(--line); }
+.faq details:last-child { border-bottom: 0; }
+.faq summary {
+  list-style: none; cursor: pointer; padding: 20px 24px; font-weight: 600; font-size: 16.5px;
+  display: flex; justify-content: space-between; gap: 18px; align-items: center;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font-family: var(--mono); font-size: 20px; color: var(--accent); line-height: 1; flex: none; }
+.faq details[open] summary::after { content: "−"; }
+.faq details p { padding: 0 24px 22px; color: var(--muted); font-size: 15.5px; max-width: 78ch; }
+
+/* ---------- Заявка ---------- */
+.apply { background: var(--surface); }
+.apply-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: 48px; align-items: start; }
+.apply-side h3 { font-size: 19px; font-weight: 650; margin-bottom: 14px; }
+.apply-side ol { margin: 0; padding: 0; list-style: none; counter-reset: s; }
+.apply-side li { counter-increment: s; padding: 12px 0 12px 44px; border-top: 1px solid var(--line-soft); position: relative; font-size: 15px; color: var(--muted); }
+.apply-side li::before { content: "0" counter(s); position: absolute; left: 0; top: 12px; font-family: var(--mono); font-size: 12.5px; color: var(--accent); }
+.apply-side li b { color: var(--ink); font-weight: 600; }
+.price { margin-top: 24px; border: 1px solid var(--line); padding: 16px 18px; background: var(--bg); }
+.price .lbl { font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.price b { display: block; font-family: var(--mono); font-size: 22px; font-weight: 600; margin: 4px 0; }
+.price span { font-size: 13.5px; color: var(--muted); line-height: 1.45; display: block; }
+
+form.lead { border: 1px solid var(--ink); padding: 28px; background: var(--bg); }
+form.lead .fields { grid-template-columns: 1fr 1fr; }
+form.lead .full { grid-column: 1 / -1; }
+form.lead label .req { color: var(--accent); }
+form.lead .ctl select, form.lead .ctl textarea { flex: 1; border: 0; background: transparent; padding: 10px 12px; outline: none; min-width: 0; width: 100%; }
+form.lead .ctl select {
+  -webkit-appearance: none; appearance: none; cursor: pointer; padding-right: 36px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 52%, calc(100% - 13px) 52%; background-size: 5px 5px; background-repeat: no-repeat;
+}
+form.lead .ctl select option { background: var(--surface); color: var(--ink); }
+form.lead .ctl textarea { resize: vertical; min-height: 110px; line-height: 1.5; }
+form.lead .ctl.bad { border-color: var(--err); }
+.err-msg { display: none; margin-top: 4px; font-size: 12.5px; color: var(--err); }
+.ctl.bad + .err-msg { display: block; }
+.consent { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+.consent input { margin-top: 3px; width: 16px; height: 16px; accent-color: var(--accent); flex: none; }
+.consent.bad { color: var(--err); }
+.form-foot { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: 22px; }
+.form-foot small { color: var(--muted); font-size: 12.5px; max-width: 34ch; line-height: 1.45; }
+.status { display: none; margin-top: 18px; padding: 14px 16px; border: 1px solid var(--ok); color: var(--ok); font-size: 14.5px; background: color-mix(in srgb, var(--ok) 8%, transparent); }
+.status.show { display: block; }
+.status.error { border-color: var(--err); color: var(--err); background: color-mix(in srgb, var(--err) 8%, transparent); }
+.status button { margin-top: 10px; display: block; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+/* ---------- Контакты ---------- */
+.contacts { display: grid; grid-template-columns: repeat(var(--cols, 4), 1fr); border: 1px solid var(--line); background: var(--surface); }
+.contacts > div { padding: 22px 22px 24px; border-right: 1px solid var(--line); min-width: 0; }
+.contacts > div:last-child { border-right: 0; }
+.contacts .lbl { font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.contacts a, .contacts p { display: block; margin-top: 8px; font-size: 16.5px; font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
+.contacts a:hover { color: var(--accent); }
+.contacts p { font-weight: 500; }
+
+footer { border-top: 1px solid var(--line); padding: 28px 0 40px; font-size: 13px; color: var(--muted); }
+footer .wrap { display: flex; justify-content: space-between; gap: 12px 32px; flex-wrap: wrap; }
+
+/* ---------- Адаптив ---------- */
+@media (max-width: 960px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .stat:nth-child(2) { border-right: 0; }
+  .stat:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+  .steps, .steps.four, .proof { grid-template-columns: repeat(2, 1fr); }
+  .loop { grid-template-columns: 1fr; }
+  .node { border-right: 0; border-bottom: 1px solid var(--line); }
+  .node:last-child { border-bottom: 0; }
+  .node:not(:last-child)::after { right: auto; left: 28px; top: auto; bottom: -6px; margin: 0; transform: rotate(135deg); }
+  .example, .calc, .apply-grid { grid-template-columns: 1fr; }
+  .panel + .panel { margin-top: 0; }
+  .calc-in { border-right: 0; border-bottom: 1px solid var(--line); }
+  .contacts { grid-template-columns: repeat(2, 1fr); }
+  .contacts > div:nth-child(2) { border-right: 0; }
+  .contacts > div:nth-child(-n+2):nth-last-child(n+3) { border-bottom: 1px solid var(--line); }
+}
+@media (max-width: 1020px) {
+  .nav { display: none; position: absolute; top: 60px; left: 0; right: 0; flex-direction: column; gap: 0; margin: 0; background: var(--bg); border-bottom: 1px solid var(--line); padding: 8px var(--gut) 14px; }
+  .nav.open { display: flex; }
+  .nav a { padding: 12px 0; border-bottom: 1px solid var(--line-soft); font-size: 15px; }
+  .menu-btn { display: block; margin-left: 0; }
+  .topbar .btn { margin-left: auto; }
+  .topbar .wrap { gap: 14px; }
+}
+@media (max-width: 760px) {
+  :root { --gut: 16px; }
+  body { font-size: 16px; }
+  .sec { padding: 60px 0; }
+  .sec-head { grid-template-columns: 1fr; margin-bottom: 32px; }
+  .sec-head .idx { padding: 0 0 8px; }
+  .sec-head p { grid-column: 1; }
+  .hero { padding-top: 40px; }
+  .hero .lead { font-size: 17px; }
+  .topbar .btn { display: none; }
+  .cols3, .benefit { grid-template-columns: 1fr; }
+  .cell { border-right: 0; border-bottom: 1px solid var(--line); }
+  .cell:last-child { border-bottom: 0; }
+  .steps, .steps.four, .proof, .deliv, .team { grid-template-columns: 1fr; }
+  .deliv > div:nth-child(odd) { border-right: 0; }
+  .deliv > div:nth-last-child(2) { border-bottom: 1px solid var(--line); }
+  .fields, form.lead .fields { grid-template-columns: 1fr; }
+  .fig-params { grid-template-columns: repeat(2, 1fr); }
+  .fig-params div:nth-child(2) { border-right: 0; }
+  .fig-params div:nth-child(-n+2) { border-bottom: 1px solid var(--line-soft); }
+  .calc-in, .calc-out, form.lead { padding: 20px; }
+  .person { grid-template-columns: 56px 1fr; gap: 14px; padding: 16px; }
+  .avatar { width: 56px; height: 56px; font-size: 17px; }
+  .contacts { grid-template-columns: 1fr; }
+  .contacts > div { border-right: 0; border-bottom: 1px solid var(--line); }
+  .contacts > div:last-child { border-bottom: 0; }
+  table.cmp th, table.cmp td { padding: 11px 14px; }
+}
+@media (max-width: 420px) {
+  .stat { padding: 18px 14px; }
+  .stats { grid-template-columns: 1fr 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="{company.brand} — на главную">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" fill="var(--accent)"/><circle cx="16" cy="16" r="9" fill="none" stroke="var(--accent-ink)" stroke-width="2"/><circle cx="16" cy="16" r="2.5" fill="var(--accent-ink)"/></svg>
+      <span>{company.brand}</span>
+    </a>
+    <nav class="nav" id="nav" aria-label="Разделы">
+      <a href="#problem">Задача</a>
+      <a href="#process">Процесс</a>
+      <a href="#benefit">Выгода</a>
+      <a href="#example">Пример</a>
+      <a href="#proof">Подтверждения</a>
+      <a href="#faq">Вопросы</a>
+      <a href="#contacts">Контакты</a>
+    </nav>
+    <a class="btn primary sm" href="#apply">Оставить заявку</a>
+    <button class="menu-btn" id="menuBtn" aria-label="Меню" aria-expanded="false" aria-controls="nav"><span></span></button>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow">Инжиниринговый сервис · СДПМ</div>
+        <h1>Больше момента — <em>меньше магнитов</em> в роторе вашего двигателя</h1>
+        <p class="lead">Подбираем форму и положение постоянных магнитов ротора синхронного двигателя. Нейросети заменяют большую часть конечно-элементных расчётов, а лучшие варианты подтверждаются точным расчётом. Вы получаете проверенную конструкцию и чертёж за {offer.term}.</p>
+        <div class="cta">
+          <a class="btn primary" href="#apply">Оставить заявку</a>
+          <a class="btn" href="#process">Как проходит оптимизация</a>
+        </div>
+        <div class="tags">
+          <span>без зарубежных лицензий</span>
+          <span>работаем по NDA</span>
+          <span>оплата за результат</span>
+        </div>
+      </div>
+
+      <figure class="fig" style="margin:0">
+        <div class="fig-bar">
+          <span>РОТОР {example.motor} · ВИД СВЕРХУ</span>
+          <div class="seg" role="group" aria-label="Вариант конструкции">
+            <button type="button" data-mode="base" aria-pressed="false">Базовый</button>
+            <button type="button" data-mode="opt" aria-pressed="false">Оптимизированный</button>
+            <button type="button" data-mode="both" aria-pressed="true">Наложение</button>
+          </div>
+        </div>
+        <svg class="rotor" id="rotor" viewBox="-60 -60 120 120" role="img" aria-label="Схема ротора с десятью V-образными парами магнитов: базовый и оптимизированный варианты"></svg>
+        <dl class="fig-params" style="margin:0">
+          <div><dt>Ширина</dt><dd id="pW">—</dd></div>
+          <div><dt>Толщина</dt><dd id="pT">—</dd></div>
+          <div><dt>Поворот пары</dt><dd id="pA">—</dd></div>
+          <div><dt>Площадь</dt><dd id="pS">—</dd></div>
+        </dl>
+        <figcaption class="fig-note">Условная схема: {example.pairs} V-образных пар магнитов, Ø{example.rotorDiameter} мм, вал Ø{example.shaftDiameter} мм. Размеры магнита и угол поворота пары — из расчёта оптимизации.</figcaption>
+      </figure>
+    </div>
+
+    <div class="stats">
+      <div class="stat hl"><b>{results.torque}<small> %</small></b><span>вращающего момента относительно базовой конструкции</span></div>
+      <div class="stat hl"><b>{results.magnet}<small> %</small></b><span>площади сечения магнита в роторе</span></div>
+      <div class="stat"><b>{results.speedup}<small>×</small></b><span>меньше расчётов МКЭ: {derived.femNew} вместо ~{derived.classicCalcs}</span></div>
+      <div class="stat"><b>{results.error}<small> %</small></b><span>средняя ошибка нейросети по моменту (R² = {results.r2})</span></div>
+    </div>
+    <p class="stats-note">Двигатель {example.motor} ({example.power}, {example.voltage}), модель FEMM 4.2. Оптимизированный вариант подтверждён конечно-элементным расчётом.</p>
+  </div>
+</section>
+
+<!-- ================= 01 ЗАДАЧА ================= -->
+<section class="sec" id="problem">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="idx">01 / ЗАДАЧА</span>
+      <h2>Ротор — самая дорогая и самая трудоёмкая часть проектирования</h2>
+      <p>Форма и расположение магнитов определяют момент двигателя и его себестоимость. Но найти хороший вариант вручную или перебором слишком долго и дорого.</p>
+    </div>
+    <div class="cols3">
+      <div class="cell">
+        <span class="num">A</span>
+        <div class="big">{problem.magnetShare}</div>
+        <h3>себестоимости двигателя — магниты</h3>
+        <p>Редкоземельные магниты NdFeB — основная статья затрат в синхронном двигателе. Лишний грамм магнита — прямые потери на каждом изделии тиража.</p>
+      </div>
+      <div class="cell">
+        <span class="num">B</span>
+        <div class="big">~{derived.classicCalcs}</div>
+        <h3>расчётов на одну оптимизацию</h3>
+        <p>Классический генетический алгоритм вызывает МКЭ для каждого варианта, и одна оптимизация занимает около {compute.classicTime} машинного времени.</p>
+      </div>
+      <div class="cell">
+        <span class="num">C</span>
+        <div class="big">{problem.licenseCost}</div>
+        <h3>в год — лицензия зарубежной САПР</h3>
+        <p>К этому добавляется штат расчётчиков, а доступ к зарубежному ПО в России ограничен. Для 1–2 проектов в год такая схема не окупается.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 02 ПРОЦЕСС ================= -->
+<section class="sec" id="process">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="idx">02 / ПРОЦЕСС</span>
+      <h2>Нейросеть подсказывает, физический расчёт подтверждает</h2>
+      <p>Искусственный интеллект ускоряет поиск, а итоговые цифры всегда подтверждаются точным инженерным расчётом.</p>
+    </div>
+
+    <div class="steps four">
+      <div class="step">
+        <div class="n">01</div>
+        <h3>Вы передаёте задачу</h3>
+        <p>Техническое задание и данные о двигателе: что нужно улучшить и какие есть ограничения.</p>
+      </div>
+      <div class="step">
+        <div class="n">02</div>
+        <h3>Мы готовим модель</h3>
+        <p>Строим цифровую модель вашего ротора и «обучаем» её искусственный интеллект на расчётах.</p>
+      </div>
+      <div class="step">
+        <div class="n">03</div>
+        <h3>Ищем лучшую конструкцию</h3>
+        <p>ИИ быстро перебирает варианты, а лучшие из них мы проверяем точным расчётом.</p>
+      </div>
+      <div class="step">
+        <div class="n">04</div>
+        <h3>Передаём результат</h3>
+        <p>Отчёт, готовый чертёж ротора и рекомендации — за {offer.term}.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 03 ВЫГОДА ================= -->
+<section class="sec" id="benefit">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="idx">03 / ВЫГОДА</span>
+      <h2>Меньше магнитов, больше момента, меньше времени</h2>
+      <p>Оптимизация даёт эффект сразу по трём направлениям. Первые два работают на себестоимость и характеристики изделия, третий — на сроки и бюджет проекта.</p>
+    </div>
+
+    <div class="benefit">
+      <div class="cell">
+        <div class="metric">{results.magnet} %</div>
+        <h3>Ниже себестоимость двигателя</h3>
+        <p>Меньше редкоземельного магнита на каждое изделие. Экономия растёт с тиражом: чем больше выпуск, тем быстрее окупается проект.</p>
+        <ul>
+          <li>меньше NdFeB на каждый ротор</li>
+          <li>меньше зависимость от цен на редкоземельные металлы</li>
+          <li>технология остаётся прежней — меняется только геометрия</li>
+        </ul>
+      </div>
+      <div class="cell">
+        <div class="metric">{results.torque} %</div>
+        <h3>Выше крутящий момент</h3>
+        <p>Момент вырос при одновременном уменьшении магнита: геометрия работает эффективнее, а не просто «экономит материал».</p>
+        <ul>
+          <li>на фронте Парето до {results.paretoTorque} % к моменту</li>
+          <li>можно выбрать приоритет: момент или экономия магнита</li>
+          <li>запас для повышения мощности без смены габаритов</li>
+        </ul>
+      </div>
+      <div class="cell">
+        <div class="metric">{results.speedup}×</div>
+        <h3>Быстрее и без лицензий</h3>
+        <p>{derived.femNew} расчётов МКЭ вместо ~{derived.classicCalcs}. Результат за {offer.term}, без покупки САПР и без собственной расчётной группы.</p>
+        <ul>
+          <li>открытые инструменты: Python, FEMM</li>
+          <li>нет санкционных и лицензионных рисков</li>
+          <li>платите за результат, а не за подписку</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="calc" id="calc">
+      <div class="calc-in">
+        <h3>Оцените эффект для вашего тиража</h3>
+        <p>Подставьте свои цифры. Значения по умолчанию — условный пример.</p>
+        <div class="fields">
+          <div class="field">
+            <label for="cQty">Годовой тираж двигателей</label>
+            <div class="ctl"><input id="cQty" type="number" min="0" step="100" inputmode="numeric"><i>шт.</i></div>
+          </div>
+          <div class="field">
+            <label for="cMag">Стоимость магнитов в одном двигателе</label>
+            <div class="ctl"><input id="cMag" type="number" min="0" step="50" inputmode="numeric"><i>₽</i></div>
+          </div>
+          <div class="field">
+            <label for="cPct">Снижение расхода магнитов</label>
+            <div class="ctl"><input id="cPct" type="number" min="0" max="50" step="0.1" inputmode="decimal"><i>%</i></div>
+          </div>
+          <div class="field">
+            <label for="cPrice">Стоимость проекта оптимизации</label>
+            <div class="ctl"><input id="cPrice" type="number" min="0" step="5000" inputmode="numeric"><i>₽</i></div>
+          </div>
+        </div>
+      </div>
+      <div class="calc-out" aria-live="polite">
+        <div>
+          <div class="lbl">Экономия на магнитах в год</div>
+          <div class="val" id="oSave">—</div>
+        </div>
+        <div>
+          <div class="lbl">Окупаемость проекта</div>
+          <div class="val sm" id="oPay">—</div>
+        </div>
+        <div class="hint">Оценка ориентировочная. Значение {results.magnet} % получено на двигателе {example.motor}; для вашей конструкции эффект определяется расчётом.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 04 ПРИМЕР ================= -->
+<section class="sec" id="example">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="idx">04 / ПРИМЕР</span>
+      <h2>Результат на двигателе {example.motor}</h2>
+      <p>Синхронный двигатель с постоянными магнитами: {example.power}, {example.voltage}, {example.speed}, {example.pairs} V-образных пар. Оптимизировали ширину и толщину магнита и угол поворота пары.</p>
+    </div>
+    <div class="example">
+      <div>
+        <div class="panel">
+          <h3>Параметры ротора</h3>
+          <table class="cmp">
+            <thead><tr><th>Параметр</th><th class="m">Было</th><th class="m">Стало</th></tr></thead>
+            <tbody id="exTable"></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="panel">
+          <h3>Затраты вычислений</h3>
+          <div class="bars">
+            <div class="bar-row">
+              <div class="cap"><span>Классический ГА + МКЭ</span><span>~{derived.classicCalcs} расчётов</span></div>
+              <div class="bar"><i style="width:100%"></i></div>
+            </div>
+            <div class="bar-row">
+              <div class="cap"><span>Нейросетевой контур</span><span>{derived.femNew} расчётов</span></div>
+              <div class="bar acc"><i id="barNew" style="width:3%"></i></div>
+            </div>
+            <div class="bar-note">{derived.femNew} = {compute.trainSamples} расчётов обучающей выборки + {compute.verifyCalcs} проверочных расчётов лучших вариантов. Один вариант: ~{compute.nnTime} на нейросети против ~{compute.femTime} в МКЭ. Один прогон оптимизации — около {compute.runTime} против ~{compute.classicTime} в классической схеме.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 05 ЧТО ПОЛУЧАЕТЕ ================= -->
+<section class="sec" id="deliver">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="idx">05 / РЕЗУЛЬТАТ ДЛЯ ВАС</span>
+      <h2>Что вы получаете по итогам проекта</h2>
+      <p>Не лицензию и не набор скриптов, а готовое инженерное решение, которое можно передавать в производство.</p>
+    </div>
+    <div class="deliv">
+      <div>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg>
+        <h3>Инженерный отчёт</h3>
+        <p>Постановка, модель, результаты, сравнение с базовой конструкцией, оценка точности и ограничения применимости.</p>
+      </div>
+      <div>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 20V4M3 20h18"/><path d="M6 16c3-1 4-9 7-9s3 5 8 3"/></svg>
+        <h3>Набор лучших вариантов</h3>
+        <p>Фронт Парето: несколько конструкций с разным соотношением момента и расхода магнита — вы выбираете под свою задачу.</p>
+      </div>
+      <div>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        <h3>Чертёж пластины ротора</h3>
+        <p>Геометрия в DXF с размерами, готовая для лазерной резки или штамповки и для загрузки в вашу САПР.</p>
+      </div>
+      <div>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="16" height="16"/><path d="M4 10h16M10 4v16"/></svg>
+        <h3>Расчётная модель</h3>
+        <p>Верифицированная параметрическая модель двигателя в FEMM — её можно использовать для дальнейших расчётов.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 06 ПОДТВЕРЖДЕНИЯ ================= -->
+<section class="sec" id="proof">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="idx">06 / ПОДТВЕРЖДЕНИЯ</span>
+      <h2>Метод проверен наукой, грантом и практикой</h2>
+      <p>Метод уже применён на реальных задачах и подтверждён документами.</p>
+    </div>
+    <div class="proof" id="proofCards"></div>
+
+    <div class="team" id="team"></div>
+  </div>
+</section>
+
+<!-- ================= 07 FAQ ================= -->
+<section class="sec" id="faq">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="idx">07 / ВОПРОСЫ</span>
+      <h2>Частые вопросы</h2>
+    </div>
+    <div class="faq">
+      <details>
+        <summary>Что нужно передать для начала работы?</summary>
+        <p>Техническое задание на двигатель (момент, скорость, габариты, ограничения), геометрию ротора и статора (чертёж, DXF, STEP или модель FEMM/ELCUT), марки магнита и электротехнической стали. Если каких-то данных нет — подскажем, как их получить или чем заменить.</p>
+      </details>
+      <details>
+        <summary>Насколько можно доверять нейросети?</summary>
+        <p>Нейросеть используется только для быстрого отбора. Её средняя ошибка по моменту — около {results.error} %, а ансамбль из пяти моделей сам указывает, где неуверен. Все лучшие варианты, которые попадают в отчёт, проверяются точным конечно-элементным расчётом: вы получаете проверенные цифры, а не прогноз.</p>
+      </details>
+      <details>
+        <summary>Что с температурой и механической прочностью?</summary>
+        <p>Нагрев магнитов и механические смещения проверяются отдельно и должны оставаться в допустимых пределах. В примере на {example.motor} температура магнитов около {example.magnetTemp} °C при допуске {example.tempLimit} °C, а смещения пренебрежимо малы.</p>
+      </details>
+      <details>
+        <summary>Для каких двигателей подходит метод?</summary>
+        <p>Основной опыт — синхронные двигатели с постоянными магнитами и V-образным расположением магнитов: электротранспорт, промышленные приводы, ветрогенераторы. Метод применялся и для ротора синхронного генератора. Другие схемы ротора обсуждаем индивидуально.</p>
+      </details>
+      <details>
+        <summary>Как обеспечивается конфиденциальность?</summary>
+        <p>Работаем по соглашению о неразглашении (NDA). Данные заказчика используются только в его проекте и не попадают в открытые наборы.</p>
+      </details>
+      <details>
+        <summary>Сколько стоит и как быстро будет результат?</summary>
+        <p>Ориентировочно {offer.price} за проект, срок — {offer.term} с момента получения исходных данных. Точная стоимость зависит от сложности конструкции. Для первого проекта возможен пилотный формат: сначала оценка потенциала, затем полный проект.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 08 ЗАЯВКА ================= -->
+<section class="sec apply" id="apply">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="idx">08 / ЗАЯВКА</span>
+      <h2>Оставьте заявку на оптимизацию ротора</h2>
+      <p>Опишите задачу в свободной форме. Мы свяжемся с вами, уточним детали и подготовим предложение.</p>
+    </div>
+    <div class="apply-grid">
+      <aside class="apply-side">
+        <h3>Что будет дальше</h3>
+        <ol>
+          <li><b>Связываемся с вами</b> и уточняем задачу и исходные данные.</li>
+          <li><b>Оцениваем потенциал</b> оптимизации и согласуем объём работ.</li>
+          <li><b>Подписываем договор и NDA</b>, получаем данные.</li>
+          <li><b>Проводим оптимизацию</b> и передаём отчёт и чертежи за {offer.term}.</li>
+        </ol>
+        <div class="price">
+          <div class="lbl">Ориентир по стоимости</div>
+          <b>{offer.price}</b>
+          <span>за проект. Срок — {offer.term}. Окончательная цена зависит от сложности двигателя.</span>
+        </div>
+      </aside>
+
+      <form class="lead" id="leadForm" novalidate>
+        <div class="fields">
+          <div class="field">
+            <label for="fName">Имя <span class="req">*</span></label>
+            <div class="ctl"><input id="fName" name="name" type="text" autocomplete="name" required></div>
+            <div class="err-msg">Укажите, как к вам обращаться</div>
+          </div>
+          <div class="field">
+            <label for="fCompany">Компания</label>
+            <div class="ctl"><input id="fCompany" name="company" type="text" autocomplete="organization"></div>
+          </div>
+          <div class="field">
+            <label for="fEmail">E-mail <span class="req">*</span></label>
+            <div class="ctl"><input id="fEmail" name="email" type="email" autocomplete="email" required></div>
+            <div class="err-msg">Введите корректный адрес почты</div>
+          </div>
+          <div class="field">
+            <label for="fPhone">Телефон</label>
+            <div class="ctl"><input id="fPhone" name="phone" type="tel" autocomplete="tel" placeholder="+7"></div>
+          </div>
+          <div class="field">
+            <label for="fType">Тип двигателя</label>
+            <div class="ctl">
+              <select id="fType" name="type">
+                <option value="">Выберите…</option>
+                <option>СДПМ для электротранспорта</option>
+                <option>СДПМ для промышленного привода</option>
+                <option>Синхронный генератор / ветрогенератор</option>
+                <option>Другое</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="fQty">Годовой тираж</label>
+            <div class="ctl"><input id="fQty" name="qty" type="text" inputmode="numeric" placeholder="например, 3000"><i>шт.</i></div>
+          </div>
+          <div class="field full">
+            <label for="fTask">Задача</label>
+            <div class="ctl"><textarea id="fTask" name="task" placeholder="Мощность, момент, габариты, что нужно улучшить: снизить расход магнитов, поднять момент…"></textarea></div>
+          </div>
+          <div class="field full hp" aria-hidden="true">
+            <label for="fWeb">Не заполняйте это поле</label>
+            <input id="fWeb" name="website" type="text" tabindex="-1" autocomplete="off">
+          </div>
+          <div class="field full">
+            <label class="consent" id="consentLbl">
+              <input type="checkbox" id="fConsent" name="consent">
+              <span>Согласен на обработку персональных данных для связи по заявке <span class="req" style="color:var(--accent)">*</span></span>
+            </label>
+          </div>
+        </div>
+        <div class="form-foot">
+          <button class="btn primary" type="submit" id="submitBtn">Отправить заявку</button>
+          <small>Ответим {form.replyTime}. Данные используются только для связи с вами.</small>
+        </div>
+        <div class="status" id="status" role="status"></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ================= КОНТАКТЫ ================= -->
+<section class="sec" id="contacts" style="padding-bottom:72px">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="idx">09 / КОНТАКТЫ</span>
+      <h2>Свяжитесь напрямую</h2>
+      <p>Напишите нам на почту — ответим {form.replyTime}.</p>
+    </div>
+    <div class="contacts">
+      <div><div class="lbl">E-mail</div><a data-contact="email" href="#">—</a></div>
+      <div><div class="lbl">Телефон</div><a data-contact="phone" href="#">—</a></div>
+      <div><div class="lbl">Telegram</div><a data-contact="telegram" href="#" target="_blank" rel="noopener">—</a></div>
+      <div><div class="lbl">Расположение</div><p data-contact="city">—</p></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="year"></span> {company.legal}. Оптимизация ротора синхронных двигателей.</span>
+    <span id="footLeader"></span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Контакты ---------- */
+  document.querySelectorAll('[data-contact]').forEach(function (el) {
+    var k = el.getAttribute('data-contact'), v = SITE.contacts[k];
+    if (!v) { el.parentNode.remove(); return; }          // пустое значение — блок скрыт
+    el.textContent = v;
+    if (k === 'email') el.href = 'mailto:' + v;
+    if (k === 'phone') el.href = 'tel:' + v.replace(/[^\d+]/g, '');
+    if (k === 'telegram') el.href = 'https://t.me/' + v.replace(/^@/, '');
+  });
+  document.querySelector('.contacts').style.setProperty('--cols', document.querySelectorAll('.contacts > div').length);
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  /* ---------- Данные SITE → страница ---------- */
+  function pn(x) { return parseFloat(String(x).replace(/−/g, '-').replace(',', '.')); }   // «−8,3» → -8.3
+  function fmtInt(n) { return new Intl.NumberFormat('ru-RU').format(n).replace(/[  ]/g, ' '); }
+  function f2(x) { return x.toFixed(2).replace('.', ','); }
+  function f1(x) { return x.toFixed(1).replace('.', ','); }
+  function mk(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  // значения, которые считаются автоматически
+  SITE.derived = {
+    femNew: fmtInt(SITE.compute.trainSamples + SITE.compute.verifyCalcs),
+    classicCalcs: fmtInt(SITE.compute.classicCalcs)
+  };
+
+  // карточки подтверждений
+  var proofBox = document.getElementById('proofCards');
+  SITE.proof.cards.forEach(function (c) {
+    var d = mk('div'); d.appendChild(mk('div', 'tag', c.tag)); d.appendChild(mk('h3', '', c.title));
+    if (c.text) d.appendChild(mk('p', '', c.text));
+    if (c.lines && c.lines.length) {
+      var n = mk('div', 'nums');
+      c.lines.forEach(function (l, i) { if (i) n.appendChild(document.createElement('br')); n.appendChild(document.createTextNode(l)); });
+      d.appendChild(n);
+    }
+    proofBox.appendChild(d);
+  });
+
+  // команда
+  var teamBox = document.getElementById('team');
+  SITE.team.forEach(function (m) {
+    var parts = m.name.trim().split(/\s+/);
+    var ini = ((parts[1] || '')[0] || '') + ((parts[0] || '')[0] || '');
+    var card = mk('div', 'person'), av = mk('div', 'avatar');
+    av.setAttribute('aria-hidden', 'true');
+    if (m.photo) { var im = mk('img'); im.src = m.photo; im.alt = ''; av.appendChild(im); } else av.textContent = ini.toUpperCase();
+    var body = mk('div');
+    body.appendChild(mk('h3', '', m.name)); body.appendChild(mk('div', 'role', m.role)); body.appendChild(mk('p', '', m.bio));
+    card.appendChild(av); card.appendChild(body); teamBox.appendChild(card);
+  });
+  var lead = SITE.team[0];
+  if (lead) document.getElementById('footLeader').textContent = lead.name + ' · ' + lead.role.toLowerCase();
+
+  // таблица «было / стало»
+  (function () {
+    var B = SITE.example.base, O = SITE.example.opt, R = SITE.results;
+    var rows = [
+      ['Ширина магнита', f2(B.w) + ' мм', f2(O.w) + ' мм'],
+      ['Толщина магнита', f2(B.t) + ' мм', f2(O.t) + ' мм'],
+      ['Поворот V-пары', B.a ? '+' + f1(B.a) + '°' : '0°', O.a ? '+' + f1(O.a) + '°' : '0°'],
+      ['Площадь магнита', f2(B.area) + ' мм²', f2(O.area) + ' мм²'],
+      ['Вращающий момент', 'база', R.torque + ' %', true],
+      ['Расход магнита', 'база', R.magnet + ' %', true]
+    ];
+    var tb = document.getElementById('exTable');
+    rows.forEach(function (r) {
+      var tr = mk('tr', r[3] ? 'sum' : ''); tr.appendChild(mk('td', '', r[0])); tr.appendChild(mk('td', 'm', r[1])); tr.appendChild(mk('td', 'm', r[2]));
+      tb.appendChild(tr);
+    });
+    document.getElementById('barNew').style.width = (100 * (SITE.compute.trainSamples + SITE.compute.verifyCalcs) / SITE.compute.classicCalcs).toFixed(2) + '%';
+  })();
+
+  // подстановка {путь.к.значению} в тексты и атрибуты
+  function get(path) { return path.split('.').reduce(function (o, k) { return o == null ? o : o[k]; }, SITE); }
+  function tpl(str) {
+    return str.replace(/\{([A-Za-z0-9_.]+)\}/g, function (m, p) {
+      var v = get(p);
+      if (v == null || typeof v === 'object') { console.warn('SITE: нет значения для ' + m); return m; }
+      return v;
+    });
+  }
+  (function () {
+    var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null), nodes = [], n;
+    while ((n = w.nextNode())) {
+      var tag = n.parentNode.nodeName;
+      if (tag !== 'SCRIPT' && tag !== 'STYLE' && n.nodeValue.indexOf('{') !== -1) nodes.push(n);
+    }
+    nodes.forEach(function (t) { t.nodeValue = tpl(t.nodeValue); });
+    document.querySelectorAll('[aria-label],[placeholder],[title],[alt]').forEach(function (el) {
+      ['aria-label', 'placeholder', 'title', 'alt'].forEach(function (a) {
+        var v = el.getAttribute(a); if (v && v.indexOf('{') !== -1) el.setAttribute(a, tpl(v));
+      });
+    });
+    document.title = tpl(document.title);
+    var md = document.querySelector('meta[name="description"]');
+    if (md) md.setAttribute('content', tpl(md.getAttribute('content')));
+  })();
+
+  /* ---------- Мобильное меню ---------- */
+  var nav = document.getElementById('nav'), menuBtn = document.getElementById('menuBtn');
+  menuBtn.addEventListener('click', function () {
+    var open = nav.classList.toggle('open');
+    menuBtn.setAttribute('aria-expanded', open);
+  });
+  nav.addEventListener('click', function (e) {
+    if (e.target.tagName === 'A') { nav.classList.remove('open'); menuBtn.setAttribute('aria-expanded', false); }
+  });
+
+  /* ---------- Подсветка раздела в меню ---------- */
+  var links = {};
+  nav.querySelectorAll('a').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
+  var secs = Array.prototype.slice.call(document.querySelectorAll('main section[id]'));
+  var ticking = false;
+  function markActive() {
+    ticking = false;
+    var y = window.innerHeight * 0.4, cur = null;
+    secs.forEach(function (s) { if (s.getBoundingClientRect().top <= y) cur = s.id; });
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) cur = secs[secs.length - 1].id;
+    Object.keys(links).forEach(function (k) { links[k].classList.toggle('active', k === cur); });
+  }
+  window.addEventListener('scroll', function () {
+    if (!ticking) { ticking = true; requestAnimationFrame(markActive); }
+  }, { passive: true });
+  markActive();
+
+  /* ---------- Схема ротора ---------- */
+  var NS = 'http://www.w3.org/2000/svg';
+  var svg = document.getElementById('rotor');
+  var VARIANTS = { base: SITE.example.base, opt: SITE.example.opt };
+  var PAIRS = SITE.example.pairs, R_ROTOR = pn(SITE.example.rotorDiameter) / 2, R_SHAFT = pn(SITE.example.shaftDiameter) / 2, R_APEX = 31.5, GAP = 2.2, ALPHA0 = 16;
+
+  function el(name, attrs, parent) {
+    var n = document.createElementNS(NS, name);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function magnetPair(parent, v, cls) {
+    var alpha = ALPHA0 + v.a;
+    var rad = alpha * Math.PI / 180;
+    [-1, 1].forEach(function (s) {
+      var cx = s * (GAP + v.w / 2 * Math.cos(rad));
+      var cy = -(R_APEX + v.w / 2 * Math.sin(rad));
+      el('rect', {
+        x: -v.w / 2, y: -v.t / 2, width: v.w, height: v.t,
+        transform: 'translate(' + cx.toFixed(3) + ' ' + cy.toFixed(3) + ') rotate(' + (-s * alpha).toFixed(2) + ')',
+        class: cls
+      }, parent);
+    });
+  }
+  function drawRotor(mode) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var defs = el('defs', {}, svg);
+    var pat = el('pattern', { id: 'hatch', width: 2.4, height: 2.4, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' }, defs);
+    el('line', { x1: 0, y1: 0, x2: 0, y2: 2.4, stroke: 'var(--line)', 'stroke-width': .35 }, pat);
+
+    // статор (условно)
+    el('circle', { r: 54, fill: 'url(#hatch)', stroke: 'var(--ghost)', 'stroke-width': .35 }, svg);
+    el('circle', { r: R_ROTOR + 1.45, fill: 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': .5 }, svg);
+    // воздушный зазор
+    el('circle', { r: R_ROTOR + 0.35, fill: 'none', stroke: 'var(--ghost)', 'stroke-width': .25, 'stroke-dasharray': '1 1' }, svg);
+    // ротор
+    el('circle', { r: R_ROTOR, fill: 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': .6 }, svg);
+    // оси
+    el('line', { x1: -57, y1: 0, x2: 57, y2: 0, stroke: 'var(--ghost)', 'stroke-width': .2, 'stroke-dasharray': '6 1.5 1 1.5' }, svg);
+    el('line', { x1: 0, y1: -57, x2: 0, y2: 57, stroke: 'var(--ghost)', 'stroke-width': .2, 'stroke-dasharray': '6 1.5 1 1.5' }, svg);
+
+    for (var k = 0; k < PAIRS; k++) {
+      var g = el('g', { transform: 'rotate(' + (k * 360 / PAIRS) + ')' }, svg);
+      if (mode === 'base' || mode === 'both') magnetPair(g, VARIANTS.base, mode === 'both' ? 'm-ghost' : 'm-solid');
+      if (mode === 'opt' || mode === 'both') magnetPair(g, VARIANTS.opt, 'm-solid opt');
+    }
+    // вал
+    el('circle', { r: R_SHAFT, fill: 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': .5 }, svg);
+    el('circle', { r: .9, fill: 'var(--ink)' }, svg);
+
+    // выноски размеров
+    var d = el('g', { fill: 'none', stroke: 'var(--ink)', 'stroke-width': .25 }, svg);
+    el('path', { d: 'M' + (-R_ROTOR) + ' -46.5 H' + R_ROTOR + ' M' + (-R_ROTOR) + ' -48.5 V-44.5 M' + R_ROTOR + ' -48.5 V-44.5' }, d);
+    var t1 = el('text', { x: 0, y: -49.2, 'text-anchor': 'middle', class: 'dim' }, svg);
+    t1.textContent = 'Ø' + SITE.example.rotorDiameter;
+    var t2 = el('text', { x: -57, y: 57.5, class: 'dim' }, svg);
+    t2.textContent = mode === 'base' ? 'БАЗОВЫЙ' : mode === 'opt' ? 'ОПТИМИЗИРОВАННЫЙ' : 'ПУНКТИР — БАЗОВЫЙ · ЗАЛИВКА — ОПТИМИЗИРОВАННЫЙ';
+  }
+  function updateParams(mode) {
+    var v = mode === 'base' ? VARIANTS.base : VARIANTS.opt;
+    var area = v.area;
+    var f = function (x, d) { return x.toFixed(d).replace('.', ','); };
+    document.getElementById('pW').textContent = f(v.w, 2) + ' мм';
+    document.getElementById('pT').textContent = f(v.t, 2) + ' мм';
+    document.getElementById('pA').textContent = (v.a ? '+' : '') + f(v.a, 1) + '°';
+    document.getElementById('pS').textContent = f(area, 2) + ' мм²';
+  }
+  // стили схемы
+  var st = document.createElement('style');
+  st.textContent =
+    '.m-solid{fill:var(--accent);fill-opacity:.82;stroke:var(--ink);stroke-width:.25}' +
+    '.m-solid.opt{fill-opacity:.9}' +
+    '.m-ghost{fill:none;stroke:var(--ink);stroke-width:.3;stroke-dasharray:.9 .6}' +
+    '.dim{font-family:var(--mono);font-size:3px;fill:var(--muted);letter-spacing:.1px}';
+  document.head.appendChild(st);
+
+  var seg = document.querySelectorAll('.seg button');
+  function setMode(mode) {
+    seg.forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.mode === mode); });
+    drawRotor(mode);
+    updateParams(mode === 'base' ? 'base' : 'opt');
+  }
+  seg.forEach(function (b) { b.addEventListener('click', function () { setMode(b.dataset.mode); }); });
+  setMode('both');
+
+  /* ---------- Калькулятор ---------- */
+  var cQty = document.getElementById('cQty'), cMag = document.getElementById('cMag'),
+      cPct = document.getElementById('cPct'), cPrice = document.getElementById('cPrice'),
+      oSave = document.getElementById('oSave'), oPay = document.getElementById('oPay');
+  var rub = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 });
+  function num(i) { var v = parseFloat(String(i.value).replace(',', '.')); return isFinite(v) && v > 0 ? v : 0; }
+  function calc() {
+    var save = num(cQty) * num(cMag) * num(cPct) / 100;
+    oSave.textContent = rub.format(Math.round(save)).replace(/ /g, ' ') + ' ₽';
+    var price = num(cPrice);
+    if (save <= 0) { oPay.textContent = '—'; return; }
+    var months = price / (save / 12);
+    if (months < 0.1) oPay.textContent = 'менее месяца';
+    else if (months > 120) oPay.textContent = 'более 10 лет';
+    else {
+      var m = months < 10 ? months.toFixed(1).replace('.', ',') : String(Math.round(months));
+      var last = Math.round(months) % 10, tens = Math.round(months) % 100;
+      var word = months < 10 && months % 1 !== 0 ? 'мес.' : (tens > 10 && tens < 15) ? 'месяцев' : last === 1 ? 'месяц' : (last >= 2 && last <= 4) ? 'месяца' : 'месяцев';
+      oPay.textContent = m + ' ' + word;
+    }
+  }
+  cQty.value = SITE.calculator.qty; cMag.value = SITE.calculator.magnetCost;
+  cPct.value = Math.abs(pn(SITE.results.magnet)); cPrice.value = SITE.offer.calcPrice;
+  [cQty, cMag, cPct, cPrice].forEach(function (i) { i.addEventListener('input', calc); });
+  calc();
+
+  /* ---------- Форма заявки ---------- */
+  var form = document.getElementById('leadForm'), statusEl = document.getElementById('status'),
+      submitBtn = document.getElementById('submitBtn');
+
+  function setBad(input, bad) {
+    var ctl = input.closest('.ctl'); if (ctl) ctl.classList.toggle('bad', bad);
+  }
+  function showStatus(msg, isErr) {
+    statusEl.className = 'status show' + (isErr ? ' error' : '');
+    statusEl.textContent = msg;
+    return statusEl;
+  }
+  function buildText(d) {
+    var rows = [
+      ['Имя', d.name], ['Компания', d.company], ['E-mail', d.email], ['Телефон', d.phone],
+      ['Тип двигателя', d.type], ['Годовой тираж', d.qty], ['Задача', d.task]
+    ];
+    return rows.filter(function (r) { return r[1]; }).map(function (r) { return r[0] + ': ' + r[1]; }).join('\n');
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var f = form.elements, ok = true;
+    var nameOk = f.name.value.trim().length > 1;
+    var mailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.email.value.trim());
+    var consentOk = f.consent.checked;
+    setBad(f.name, !nameOk); setBad(f.email, !mailOk);
+    document.getElementById('consentLbl').classList.toggle('bad', !consentOk);
+    ok = nameOk && mailOk && consentOk;
+    if (!ok) {
+      var first = !nameOk ? f.name : !mailOk ? f.email : f.consent;
+      first.focus();
+      showStatus('Проверьте выделенные поля.', true);
+      return;
+    }
+    if (f.website.value) return;          // ловушка для ботов
+
+    var data = {
+      name: f.name.value.trim(), company: f.company.value.trim(), email: f.email.value.trim(),
+      phone: f.phone.value.trim(), type: f.type.value, qty: f.qty.value.trim(), task: f.task.value.trim()
+    };
+    var text = buildText(data);
+
+    if (SITE.form.endpoint) {
+      submitBtn.disabled = true;
+      fetch(SITE.form.endpoint, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(data)
+      }).then(function (r) {
+        if (!r.ok) throw new Error(r.status);
+        form.reset();
+        showStatus('Заявка отправлена. Мы свяжемся с вами ' + SITE.form.replyTime + '.', false);
+      }).catch(function () {
+        showStatus('Не удалось отправить заявку. Напишите нам на ' + SITE.contacts.email + (SITE.contacts.telegram ? ' или в Telegram ' + SITE.contacts.telegram : '') + '.', true);
+      }).then(function () { submitBtn.disabled = false; });
+      return;
+    }
+
+    // Без сервера: открываем почтовую программу с заполненным письмом
+    var subject = 'Заявка на оптимизацию ротора — ' + data.name;
+    var href = 'mailto:' + SITE.contacts.email + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(text);
+    var box = showStatus('Открываем почтовую программу с готовым письмом. Если оно не открылось, скопируйте текст заявки и отправьте на ' + SITE.contacts.email + '.', false);
+    var copy = document.createElement('button');
+    copy.type = 'button'; copy.className = 'btn sm'; copy.textContent = 'Скопировать текст заявки';
+    copy.addEventListener('click', function () {
+      function done() { copy.textContent = 'Скопировано'; }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () {});
+      else { var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (_) {} document.body.removeChild(ta); }
+    });
+    box.appendChild(copy);
+    window.location.href = href;
+  });
+  ['name', 'email'].forEach(function (n) {
+    form.elements[n].addEventListener('input', function () { setBad(this, false); });
+  });
+  form.elements.consent.addEventListener('change', function () {
+    document.getElementById('consentLbl').classList.remove('bad');
+  });
+})();
+</script>
+</body>
+</html>
